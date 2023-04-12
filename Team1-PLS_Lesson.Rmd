@@ -36,12 +36,23 @@ top_icon = function(x) {
 }
 ```
 
-## Slide 1 
+## Introduction to Method Concepts and Motivation
 
 ---
 
 
-## Slide 2
+## Presentation of the Theory
+
+
+---
+
+
+## Results of the method
+
+---
+
+
+## Code Review
 
 
 ---
