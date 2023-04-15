@@ -1,8 +1,8 @@
 ---
 title: "Partial Least Squares"
-subtitle: "CMDA 4654 Final Project"
-author: "Eshan Kaul"
-date: "April 2023"
+subtitle: "CMDA 4654 Project 2"
+author: "Nicholas Emig, Eshan Kaul, Anish Manikonda, Andrew Nutter, Ashwanth Sridhar"
+date: "Group 1"
 output:
   xaringan::moon_reader:
     css: ["default", "assets/tech-fonts.css", "assets/tech.css"]
@@ -36,7 +36,50 @@ top_icon = function(x) {
 }
 ```
 
-## Introduction to Method Concepts and Motivation
+## Overview
+* Background/Motivation
+
+* PLS Theory
+
+* PLS Algorithm
+
+* Toy Example
+
+* Sports Example
+
+---
+
+## Background
+
+* Partial Least Squares or projection to latent structures is a collection of regression based method designed for the analysis of high dimensional data in a low-structure environment. 
+
+* Developed by econometrician Herman Wold in the late sixties
+
+* Has use in many disciplines including psychology, economics, political science, and **chemistry**
+
+* Many different variations exist:
+  * PLS-W2A
+  * PLS1
+  * PLS2
+  * PLS-SVD
+  * Mode B PLS (Canonical Correlation Analysis)
+
+---
+
+## Motivation
+
+* The goal of PLS regression is to predict Y from X and describe their common structure.
+* When $Y$ is a vector and $X$ is full rank this can be solved by MLR
+* However problems with this arise when $X$ is likely to be singular
+  * when the number of predictors/features is large compared to the number of observations 
+  * when multicollinearity exists (feature matrix $X$ has less than full rank)  
+
+---
+
+## Latent Modeling 
+
+![](LatentModel1.svg)
+![](LatentModel2.svg)
 
 ---
 
