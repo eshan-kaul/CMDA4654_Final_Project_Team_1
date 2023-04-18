@@ -58,12 +58,25 @@ top_icon = function(x) {
 * Has use in many disciplines including psychology, economics, political science, and **chemistry**
 
 * Many different variations exist:
-  * PLS-W2A
-  * PLS1
-  * PLS2
-  * PLS-SVD
-  * Mode B PLS (Canonical Correlation Analysis)
-
+.pull-left[
+* PLS-W2A
+* PLS1
+* PLS2
+* PLS-SVD
+* Mode B PLS (Canonical Correlation Analysis)
+* PLS-R
+* PLS-DA
+* PLS-PM
+  ]
+.pull-right[
+* PLS-SEM
+* OPLS
+* L-PLS
+* SPLS
+* Nonlinear Iterative Partial Least Squares (NIPALS)
+* SIMPLS
+* KernalPLS
+]
 ---
 
 ## Motivation
@@ -73,7 +86,7 @@ top_icon = function(x) {
 * However problems with this arise when $X$ is likely to be singular
   * when the number of predictors/features is large compared to the number of observations 
   * when multicollinearity exists (feature matrix $X$ has less than full rank)  
-
+[For detailed explanation see chapter 3](https://users.cecs.anu.edu.au/~kee/pls.pdf)
 ---
 
 ## Latent Modeling 
@@ -83,8 +96,26 @@ top_icon = function(x) {
 
 ---
 
+## PCR vs PLS
 
-## Presentation of the Theory
+* PCR uses the $X$-information to build components
+  * Choose basis vectors from low dimensional project that maximize variation of X
+  $$\max\mathrm{Var}(X)$$
+* PLS uses the $X$ and $Y$ information to build components by looking at the cross-covariance of $X$ and $Y$
+  $$\max\mathrm{Cov}(X,Y)$$
+* PLS and PCR often predict with similar performance & level of error
+* PLS generally able to predict with fewer components  
+
+---
+
+## Visulization of PLS
+![](geometric-interpretation-of-PLS-step1.png)
+
+---
+
+## Visulization of PLS
+
+![](geometric-interpretation-of-PLS-step2.png)
 
 
 ---
