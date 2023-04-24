@@ -39,14 +39,12 @@ top_icon = function(x) {
 ## Overview
 * Background/Motivation
 
-* PLS Theory
-
 * PLS Algorithm
 
 * Toy Example
 
 * Sports Example
-yolo = true
+
 ---
 
 ## Background
@@ -55,7 +53,7 @@ yolo = true
 
 * Developed by econometrician Herman Wold in the late sixties
 
-* Has use in many disciplines including psychology, economics, political science, and **chemistry**
+* Has use in many disciplines including bioinformatics, economics, social science, and **chemometrics**
 
 * Many different variations exist:
 .pull-left[
@@ -100,6 +98,17 @@ SPLS = Sparse Partial Least Squares
 [For detailed explanation see chapter 3](https://users.cecs.anu.edu.au/~kee/pls.pdf)
 ---
 
+## What is PLS
+
+* Partial Least Squares (PLS) is a multivariate regression method
+* The goal of PLS is to find a low-dimensional representation of the input data that captures the maximum covariance between the input and output variables
+* PLS works by iteratively extracting pairs of latent variables or "components" that capture the maximum covariance between the input and output variables
+* These components are then used to build a linear regression model
+* PLS is a useful method for high-dimensional data with many predictor variables
+* PLS can handle multicollinearity and non-linearity in the relationships between the predictor and response variables
+
+---
+
 ## Latent Modeling 
 
 ![](LatentModel1.svg)
@@ -130,19 +139,67 @@ SPLS = Sparse Partial Least Squares
 
 ---
 
-## PLS Theory
+## PLS Algorithm
 
-$C_{XY} = E[]$
+Let $X \in \mathbb{R}^{n \times d}$ and $Y \in \mathbb{R}^{n \times t}$ be centered matrices, and $K$ is the number of components. Then for each $k \in [1, K]$:
+
+1. Compute the first pair of singular vectors $X_k^T Y_k$. $u_k \in \mathbb{R}^d$ and $v_k \in \mathbb{R}^t$, the first left and right singular vectors of the cross-covariance matrix $C = X_k^T Y_k$.  
+
+  1A.  Note $u_k$ and $v_k$ are weights that maximize the covariance between the $X_k$ and $\text{Cov}(X_k u_k, Y_k v_k)$  
+
+2. Project $X_k$ and $Y_k$ on the singular vectors obtaining the scores $\xi_k = X_k u_k$ and $\omega_k = Y_k v_k$  
+
+3. Obtain the rank-one approximations of the data matrices (loading vectors): 
+
+  3A. Regress $X_k$ on $\xi_k$ to get $\gamma_k^T = (\xi_k^T \xi_k)^{-1}\, \xi_k^T X_k$  
+  
+  3B. Regress $Y_k$ on $\omega_k$ to get $\delta^T = (\omega_k^T \omega_k)^{-1}\, \omega_k^T Y_k$  
 
 ---
 
-## PLS NIPALS Algorithm 
+## PLS Algorithm Continued
+  
+<span>4.</span> Deflate $X_k$ and $Y_k$ by subtracting the rank-one approximations:   
 
-```{r}
+&nbsp; &nbsp; 4A. $X_{k+1} = X_k - \xi_k \gamma_k^T$  
+  
+&nbsp; &nbsp; 4B. $Y_{k + 1} = Y_k - \omega_k \delta_k^T$  
+  
+<span>5.</span> If $X_{k+1}^T Y_{k + 1} = 0$  
 
-```
+&nbsp; &nbsp; 5A. $K \leftarrow k$ (Note this is the rank or dimension of the PLS model)  
+
+&nbsp; &nbsp; 5B. Stop/Exit loop  
+
+Else continue.  
+  
+<span>6.</span> $k \leftarrow k+1$  
+
+<span>7.</span> Return to step 1
 
 ---
+
+## Test 1
+1. Compute the first pair of singular vectors $u_1$ and $v_1$ by computing the SVD of the cross-covariance matrix $C = X^T Y$. Here, $u_1$ and $v_1$ are the weights that maximize the covariance between the input and output variables, subject to the constraint that they are normalized.
+2. Project the input and output data matrices onto the first pair of singular vectors to obtain the scores $\xi_1 = X u_1$ and $\omega_1 = Y v_1$.
+3. Compute the rank-one approximations of the input and output data matrices by regressing $X$ and $Y$ onto $\xi_1$ and $\omega_1$, respectively. This gives the loading vectors $\gamma_1$ and $\delta_1$:
+    * $\gamma_1^T = (\xi_1^T \xi_1)^{-1}, \xi_1^T X$
+    * $\delta_1^T = (\omega_1^T \omega_1)^{-1}, \omega_1^T Y$
+4. Deflate the input and output data matrices by subtracting the rank-one approximations:
+    * $X_1 = X - \xi_1 \gamma_1^T$
+    * $Y_1 = Y - \omega_1 \delta_1^T$
+
+---
+
+## Test 2
+
+5. Repeat steps 1-4 for $K$ components, where $K$ is a user-specified parameter. At each iteration, the algorithm extracts the next pair of singular vectors that captures the maximum covariance between the residual input and output matrices.
+6. The algorithm terminates when the rank of the cross-covariance matrix $C$ reaches $K$, or when $X_k^T Y_k = 0$ for some $k$, indicating that there is no more covariance to extract.
+7. The final PLS model is given by the sum of the rank-one approximations:
+    * $\hat{Y} = \sum_{k=1}^K \xi_k \delta_k^T$
+
+---
+
 
 ## PLS Kernel Algorithm 
 
