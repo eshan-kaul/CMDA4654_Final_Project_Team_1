@@ -19,6 +19,14 @@ output:
         scroll: false # disable slide transitions by scrolling
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(comment = NA)
+library(knitr)
+```
+
+
+
 ```{r, load_refs, echo=FALSE, cache=FALSE, message=FALSE}
 library(RefManageR)
 BibOptions(check.entries = FALSE, 
@@ -179,27 +187,6 @@ Else continue.
 
 ---
 
-## Test 1
-1. Compute the first pair of singular vectors $u_1$ and $v_1$ by computing the SVD of the cross-covariance matrix $C = X^T Y$. Here, $u_1$ and $v_1$ are the weights that maximize the covariance between the input and output variables, subject to the constraint that they are normalized.
-2. Project the input and output data matrices onto the first pair of singular vectors to obtain the scores $\xi_1 = X u_1$ and $\omega_1 = Y v_1$.
-3. Compute the rank-one approximations of the input and output data matrices by regressing $X$ and $Y$ onto $\xi_1$ and $\omega_1$, respectively. This gives the loading vectors $\gamma_1$ and $\delta_1$:
-    * $\gamma_1^T = (\xi_1^T \xi_1)^{-1}, \xi_1^T X$
-    * $\delta_1^T = (\omega_1^T \omega_1)^{-1}, \omega_1^T Y$
-4. Deflate the input and output data matrices by subtracting the rank-one approximations:
-    * $X_1 = X - \xi_1 \gamma_1^T$
-    * $Y_1 = Y - \omega_1 \delta_1^T$
-
----
-
-## Test 2
-
-5. Repeat steps 1-4 for $K$ components, where $K$ is a user-specified parameter. At each iteration, the algorithm extracts the next pair of singular vectors that captures the maximum covariance between the residual input and output matrices.
-6. The algorithm terminates when the rank of the cross-covariance matrix $C$ reaches $K$, or when $X_k^T Y_k = 0$ for some $k$, indicating that there is no more covariance to extract.
-7. The final PLS model is given by the sum of the rank-one approximations:
-    * $\hat{Y} = \sum_{k=1}^K \xi_k \delta_k^T$
-
----
-
 
 ## PLS Kernel Algorithm 
 
@@ -209,14 +196,91 @@ Else continue.
 
 ---
 
-## Results of the method
+## PLS on mtcars
 
+Step-by-step demonstration on how to perform partial least squares on the built-in R dataset: mtcars
 
+#### Step 1: Load 'pls' Package
+
+```{r, message = FALSE}
+# Load pls package
+library(pls)
+
+# View first six rows of mtcars dataset
+kable(head(mtcars), format = "markdown")
+
+```
 ---
+## PLS on mtcars
+	
+#### Step 2: Fit Partial Least Squares model
+	
+The following code shows how to fit the PLS model to this data.
 
-## Code Review
+```{r}
+# Make this example reproducible
+set.seed(1)
 
+# Fit PLS model
+model <- plsr(hp ~ mpg + disp + drat + wt + qsec, 
+              data = mtcars,
+              scale = TRUE, 
+              validation = "CV")
+```
+Note:
 
+* scale=TRUE: Ensures that no predictor variable is overly influential in the model if it happens to be measured in different units.
+
+* validation=”CV”: Used for k-fold cross-validation to evaluate the performance of the model. This uses k=10 folds by default.
+---
+## PLS on mtcars
+
+#### Step 3: Choose the Number of PLS Components
+
+```{r}
+# View summary of model fitting
+summary(model)
+```
+---
+## PLS on mtcars
+
+```{r, fig.align='center', out.width = "40%"}
+# Visualize cross-validation plot
+validationplot(model, val.type = "RMSEP", col = "blue", main = "RMSEP")
+```
+---
+## PLS on mtcars
+
+#### Step 4: Make Predictions using Final Model
+
+```{r, results='hide'}
+# Define training and testing sets
+train <- mtcars[1:25, c("hp", "mpg", "disp", "drat", "wt", "qsec")]
+y_test <- mtcars[26:nrow(mtcars), c("hp")]
+test <- mtcars[26:nrow(mtcars), c("mpg", "disp", "drat", "wt", "qsec")]
+    
+# Use model to make predictions on a test set
+model_pls <- plsr(hp~mpg+disp+drat+wt+qsec, data=train, scale=TRUE, validation="CV")
+model_pcr <- pcr(hp~mpg+disp+drat+wt+qsec, data=train, scale=TRUE, validation="CV")
+
+pls_pred <- predict(model_pls, test, ncomp=2)
+pcr_pred <- predict(model_pcr, test, ncomp=2)
+
+# Calculate RMSE
+rmse_pls <- sqrt(mean((pls_pred - y_test)^2))
+rmse_pcr <- sqrt(mean((pcr_pred - y_test)^2))
+```
+---
+## PLS on mtcars
+
+#### Results: 
+```{r, echo=FALSE}
+cat(" PLS test RMSE:", round(rmse_pls, 1),"\n",
+   "PCR test RMSE:", round(rmse_pcr, 1), "\n")
+```
+
+* A lower RMSE value indicates better prediction performance. 
+* Therefore, based on this specific dataset and model setup, the PLS model outperformed the PCR model with respect to predicting hp.
 ---
 
 ## Data tables `r top_icon("table")`
