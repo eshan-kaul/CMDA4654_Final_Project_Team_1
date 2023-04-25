@@ -606,6 +606,144 @@ The average deviation between the predicted sepal length and the actual observed
 
 ---
 
+
+## Sports Data Example - NFL Data
+
+Objective : Real-world scenarios often involve datasets with a large number of columns, which can lead to overfitting. To address this issue, we propose a two-dimensional reduction model. PCR involves reducing the dimensionality of the predictor variables by using principal component analysis. On the other hand PSLR seeks to identify a small set of latent variables that are linear combinations of the original predictors, which explain the maximum covariance between the predictor and response variables. To obtain the most accurate model fit, we implement this approach with the NFL dataset and compared the result.
+
+```r
+library(pls)
+sports &lt;- read.csv("NFL_1974_1.csv", header = TRUE)
+set.seed(123)
+```
+
+The data set is being trained below.
+
+```r
+train_index &lt;- sample(1:nrow(sports), round(0.7*nrow(sports)), replace = FALSE)
+train &lt;- sports[train_index, ]
+test &lt;- sports[-train_index, ]
+```
+
+---
+
+## PLS on NFL Data
+
+We implemented the PLS model by creating 5 components, and found that it provided the overall information of 86% of the Dependent and 85% of the Independent variables.
+
+```r
+pls_model &lt;- plsr(y ~ ., data = train, scale = TRUE, validation = "CV",ncomp = 5)
+print(summary(pls_model))
+```
+
+```
+Data: 	X dimension: 20 9 
+	Y dimension: 20 1
+Fit method: kernelpls
+Number of components considered: 5
+
+VALIDATION: RMSEP
+Cross-validated using 10 random segments.
+       (Intercept)  1 comps  2 comps  3 comps  4 comps  5 comps
+CV           3.218    1.637    1.634    1.756    1.863    1.916
+adjCV        3.218    1.621    1.614    1.727    1.829    1.878
+
+TRAINING: % variance explained
+   1 comps  2 comps  3 comps  4 comps  5 comps
+X    32.61    55.32    63.92    75.11    86.47
+y    80.20    84.06    85.20    85.46    85.60
+NULL
+```
+
+---
+
+## Validation Plot
+
+```r
+validationplot(pls_model, val.type = "RMSEP" )
+```
+
+![](Team1-PLS_Lesson_files/figure-html/unnamed-chunk-10-1.png)&lt;!-- --&gt;
+
+---
+
+## PCR on NFL Data
+
+We implemented the PLS model by creating 5 components, and found that it provided the overall information of 89% of the Dependent and 83% of the Independent variables. Validation Plot is included here as well.
+
+
+```r
+pcr_model &lt;- pcr(y ~ ., data = train, scale = TRUE, validation = "CV",ncomp = 5)
+validationplot(pcr_model, val.type = "RMSEP" )
+```
+
+![](Team1-PLS_Lesson_files/figure-html/unnamed-chunk-11-1.png)&lt;!-- --&gt;
+
+```r
+print(summary(pcr_model))
+```
+
+```
+Data: 	X dimension: 20 9 
+	Y dimension: 20 1
+Fit method: svdpc
+Number of components considered: 5
+
+VALIDATION: RMSEP
+Cross-validated using 10 random segments.
+       (Intercept)  1 comps  2 comps  3 comps  4 comps  5 comps
+CV           3.218    2.413    1.624    1.686    1.619    1.659
+adjCV        3.218    2.386    1.494    1.661    1.595    1.634
+
+TRAINING: % variance explained
+   1 comps  2 comps  3 comps  4 comps  5 comps
+X    34.44    56.49    74.87    83.59    89.75
+y    57.88    80.73    81.52    83.29    83.86
+NULL
+```
+
+---
+
+## Predictions using the PLS Model and the PCR Model
+
+### PLS Model
+
+```r
+pls_pred &lt;- predict(pls_model, newdata = test)
+pls_rmse &lt;- sqrt(mean((test$y - pls_pred)^2))
+```
+
+### PCR Model
+
+```r
+pcr_pred &lt;- predict(pcr_model, newdata = test)
+pcr_rmse &lt;- sqrt(mean((test$y - pcr_pred)^2))
+```
+
+---
+
+## Summary Table
+
+
+```r
+summary_table &lt;- data.frame(Model = c("PLS", "PCR"),
+                            RMSE = c(pls_rmse, pcr_rmse))
+print(summary_table)
+```
+
+```
+  Model     RMSE
+1   PLS 2.986334
+2   PCR 3.392911
+```
+
+Upon applying both models, we have determined that the PLS model outperformed the PCR model in terms of performance as the root mean
+square deviation between the values predicted and the values observed
+is smaller which indicates the points are closer to the actual line making
+it more accurate.
+
+---
+
 ## References
 .font60[
 * Abdi H, Williams LJ. Partial least squares methods: partial least squares correlation and partial least square regression. Methods Mol Biol. 2013;930:549-79. doi: 10.1007/978-1-62703-059-5_23. PMID: 23086857.
@@ -632,7 +770,7 @@ The average deviation between the predicted sepal length and the actual observed
 "countIncrementalSlides": false,
 "ratio": "16:9",
 "navigation": {
-"scroll": false
+"scroll": true
 }
 });
 if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {

@@ -16,7 +16,7 @@ output:
       countIncrementalSlides: false
       ratio: '16:9' # alternatives '16:9' or '4:3' or others e.g. 13:9
       navigation:
-        scroll: false # disable slide transitions by 
+        scroll: true # disable slide transitions by 
 ---
 
 ```{r setup, include=FALSE}
@@ -452,6 +452,85 @@ RMSE <- sqrt(mean((predictor - yTest)^2))
 ```
 
 The average deviation between the predicted sepal length and the actual observed sepal length is `r RMSE`.
+
+---
+
+
+## Sports Data Example - NFL Data
+
+Objective : Real-world scenarios often involve datasets with a large number of columns, which can lead to overfitting. To address this issue, we propose a two-dimensional reduction model. PCR involves reducing the dimensionality of the predictor variables by using principal component analysis. On the other hand PSLR seeks to identify a small set of latent variables that are linear combinations of the original predictors, which explain the maximum covariance between the predictor and response variables. To obtain the most accurate model fit, we implement this approach with the NFL dataset and compared the result.
+```{r}
+library(pls)
+sports <- read.csv("NFL_1974_1.csv", header = TRUE)
+set.seed(123)
+```
+
+The data set is being trained below.
+```{r}
+train_index <- sample(1:nrow(sports), round(0.7*nrow(sports)), replace = FALSE)
+train <- sports[train_index, ]
+test <- sports[-train_index, ]
+```
+
+---
+
+## PLS on NFL Data
+
+We implemented the PLS model by creating 5 components, and found that it provided the overall information of 86% of the Dependent and 85% of the Independent variables.
+```{r}
+pls_model <- plsr(y ~ ., data = train, scale = TRUE, validation = "CV",ncomp = 5)
+print(summary(pls_model))
+```
+
+---
+
+## Validation Plot
+```{r}
+validationplot(pls_model, val.type = "RMSEP" )
+```
+
+---
+
+## PCR on NFL Data
+
+We implemented the PLS model by creating 5 components, and found that it provided the overall information of 89% of the Dependent and 83% of the Independent variables. Validation Plot is included here as well.
+
+```{r}
+pcr_model <- pcr(y ~ ., data = train, scale = TRUE, validation = "CV",ncomp = 5)
+validationplot(pcr_model, val.type = "RMSEP" )
+print(summary(pcr_model))
+```
+
+---
+
+## Predictions using the PLS Model and the PCR Model
+
+### PLS Model
+```{r}
+pls_pred <- predict(pls_model, newdata = test)
+pls_rmse <- sqrt(mean((test$y - pls_pred)^2))
+```
+
+### PCR Model
+```{r}
+pcr_pred <- predict(pcr_model, newdata = test)
+pcr_rmse <- sqrt(mean((test$y - pcr_pred)^2))
+```
+
+---
+
+## Summary Table
+
+```{r}
+summary_table <- data.frame(Model = c("PLS", "PCR"),
+                            RMSE = c(pls_rmse, pcr_rmse))
+print(summary_table)
+```
+
+Upon applying both models, we have determined that the PLS model outperformed the PCR model in terms of performance as the root mean
+square deviation between the values predicted and the values observed
+is smaller which indicates the points are closer to the actual line making
+it more accurate.
 
 ---
 
