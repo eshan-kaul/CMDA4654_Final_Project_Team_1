@@ -50,7 +50,11 @@ class: center, middle, inverse, title-slide
 ## Overview
 * Background/Motivation
 
-* PLS Algorithm
+* PLS Algorithms  
+
+  * NIPALS  
+  
+  * Kernel  
 
 * Mtcars Example  
 
@@ -132,10 +136,6 @@ The main motivation for PLS is to predict Y from X and develop an understanding 
 * PLS is a useful method for high-dimensional data with many predictor variables
 * PLS can handle multicollinearity and non-linearity in the relationships between the predictor and response variables
 
-???
-
-Latent modeling uses linear combinations of predictors which are orthogonal to each other and try to find whichever combinations have the greatest covariance between the predictor and response. In PCR, it is assumed the input components are directly correlated with the output space. In PLS, the cross covariance is checked to ensure that the components are actually integral to the output space.
-
 ---
 
 ## Latent Modeling 
@@ -144,7 +144,8 @@ Latent modeling uses linear combinations of predictors which are orthogonal to e
 ![](LatentModel2.svg)
 
 ???
-As mentioned in the previous slide, PCR uses only the input space to make predictions on the data. This is because PCR aims to maximize variance between the predictors. However, PLS uses information from the predictors and the response to maximize the cross covariance. Although they use different methods, both PLS and PCR often predict with the same level of accuracy. Generally though, PLS is able to use fewer components due to the cross-validation.
+
+Latent modeling uses linear combinations of predictors which are orthogonal to each other and try to find whichever combinations have the greatest covariance between the predictor and response. In PCR, it is assumed the input components are directly correlated with the output space. In PLS, the cross covariance is checked to ensure that the components are actually integral to the output space.
 
 ---
 
@@ -157,6 +158,9 @@ As mentioned in the previous slide, PCR uses only the input space to make predic
   `$$\max\mathrm{Cov}(X,Y)$$`
 * PLS and PCR often predict with similar performance &amp; level of error
 * PLS generally able to predict with fewer components  
+
+???
+As mentioned in the previous slide, PCR uses only the input space to make predictions on the data. This is because PCR aims to maximize variance between the predictors. However, PLS uses information from the predictors and the response to maximize the cross covariance. Although they use different methods, both PLS and PCR often predict with the same level of accuracy. Generally though, PLS is able to use fewer components due to the cross-validation.
 
 ---
 
