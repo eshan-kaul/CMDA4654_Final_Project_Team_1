@@ -16,7 +16,7 @@ output:
       countIncrementalSlides: false
       ratio: '16:9' # alternatives '16:9' or '4:3' or others e.g. 13:9
       navigation:
-        scroll: false # disable slide transitions by scrolling
+        scroll: false # disable slide transitions by 
 ---
 
 ```{r setup, include=FALSE}
@@ -47,9 +47,16 @@ top_icon = function(x) {
 
 * PLS Algorithm
 
-* Toy Example
+* Mtcars Example  
+
+* Iris Example
 
 * Sports Example
+
+???
+Hi everyone, my name is Ashwanth and today I am joined with my classmates Eshan, Anish, Andrew, and Nick to teach you guys about Partial Least Squares.
+
+We will begin with a background and motivation, talk about theory and algorithms, and continue with examples using Mtcars, iris, and sports datasets.
 
 ---
 
@@ -84,7 +91,10 @@ top_icon = function(x) {
 
 ???
 
-Presenter Notes
+PLS uses a projection to latent structures which are uncorrelated or orthogonal, linear combinations of predictors used to analyze high dimensional data or data with many predictors in a low structure environment, making it similar to PCR, with some differences. This method was developed by Econometrician Herman World in the late 60s and is now used in disciplines such as psychology, economics, political science, and chemistry.
+
+There are many different variations of PLS including PLS-SVD, PLS Canonical, PLS discriminant analysis, Orthogonal Projection PLS, Nonlinear Iterative PLS, and Kernel PLS, some of which will be discussed further in detail later in the presentation. The first four PLS options all use 1 principal component and have a univariate response. PLS Sem uses path mapping to identify principal components. PLS R uses regression methods. SIMPLS and KernalPLS are more efficient algorithms that identify principal components.
+
 
 PLS-DA = Discriminant Analysis  
 PLS-PM = Path Modeling  
@@ -102,6 +112,10 @@ SPLS = Sparse Partial Least Squares
   * when the number of predictors/features is large compared to the number of observations 
   * when multicollinearity exists (feature matrix $X$ has less than full rank)  
 [For detailed explanation see chapter 3](https://users.cecs.anu.edu.au/~kee/pls.pdf)
+
+???
+The main motivation for PLS is to predict Y from X and develop an understanding of their relation. Typically, when data is long, having few predictors and many observations, MLR or multiple linear regression can be used. However there are two major issues with this form of analysis. MLR cannot be used when there are fewer observations than predictors because this would create a rank deficient least squares problem and MLR also has issues while dealing with multicollinearity which is when different predictors have interaction with one another. To avoid dealing with these problems, PCR or PLS can be used.
+
 ---
 
 ## What is PLS
@@ -113,12 +127,19 @@ SPLS = Sparse Partial Least Squares
 * PLS is a useful method for high-dimensional data with many predictor variables
 * PLS can handle multicollinearity and non-linearity in the relationships between the predictor and response variables
 
+???
+
+Latent modeling uses linear combinations of predictors which are orthogonal to each other and try to find whichever combinations have the greatest covariance between the predictor and response. In PCR, it is assumed the input components are directly correlated with the output space. In PLS, the cross covariance is checked to ensure that the components are actually integral to the output space.
+
 ---
 
 ## Latent Modeling 
 
 ![](LatentModel1.svg)
 ![](LatentModel2.svg)
+
+???
+As mentioned in the previous slide, PCR uses only the input space to make predictions on the data. This is because PCR aims to maximize variance between the predictors. However, PLS uses information from the predictors and the response to maximize the cross covariance. Although they use different methods, both PLS and PCR often predict with the same level of accuracy. Generally though, PLS is able to use fewer components due to the cross-validation.
 
 ---
 
@@ -159,7 +180,7 @@ Let $X \in \mathbb{R}^{n \times d}$ and $Y \in \mathbb{R}^{n \times t}$ be cente
 
   3A. Regress $X_k$ on $\xi_k$ to get $\gamma_k^T = (\xi_k^T \xi_k)^{-1}\, \xi_k^T X_k$  
   
-  3B. Regress $Y_k$ on $\omega_k$ to get $\delta^T = (\omega_k^T \omega_k)^{-1}\, \omega_k^T Y_k$  
+  3B. Regress $Y_k$ on $\omega_k$ to get $\delta_k^T = (\omega_k^T \omega_k)^{-1}\, \omega_k^T Y_k$  
 
 ---
 
@@ -185,12 +206,59 @@ Else continue.
 
 ---
 
+## PLS Algorithm Continued
 
-## PLS Kernel Algorithm 
+In the end we have decomposed $\mathbf{X}$ and $\mathbf{Y}$ by expressing each as the sum of mutually orthogonal rank-one matrices, plus a residual:
 
-```{r}
+$$\left.\begin{array}{rl}
+\mathbf{X} & =\widehat{\mathbf{X}}^{(1)}\left(\boldsymbol{\xi}_1\right)+\ldots+\widehat{\mathbf{X}}^{(K)}\left(\boldsymbol{\xi}_K\right)+\mathbf{X}^{(K+1)} \\
+& =\boldsymbol{\xi}_1 \gamma_1^T+\ldots+\boldsymbol{\xi}_K \gamma_K^T+\mathbf{X}^{(K+1)} \\
+& =\Xi \Gamma^T+\mathbf{X}^{(K+1)} \\
+\text { and } & \\
+\mathbf{Y} & =\widehat{\mathbf{Y}}^{(1)}\left(\omega_1\right)+\ldots+\widehat{\mathbf{Y}}^{(K)}\left(\omega_K\right)+\mathbf{Y}^{(K+1)} \\
+& =\omega_1 \delta_1^T+\ldots+\omega_K \boldsymbol{\delta}_K^T+\mathbf{Y}^{(K+1)} \\
+& =\boldsymbol{\Omega} \Delta^T+\mathbf{Y}^{(K+1)}
+\end{array}\right\}$$
 
-```
+---
+
+## Kernel PLS Algorithm
+
+1. **Preprocessing**: If `center = TRUE`, the mean of each column of `X` and `Y` is subtracted from the corresponding column. Otherwise, the data are used as is.  
+
+2. **Initialize**: Set `i = 1`, initialize the residual matrices `E` and `F` as `X` and `Y`, respectively.  
+
+3. **Calculate the kernel matrices**: Calculate the kernel matrix KX as the inner product between the preprocessed X data and itself, and the kernel matrix KY as the inner product between the preprocessed Y data and itself.  
+
+4. **Calculate the scores**: Calculate the scores `T` and `U` as the normalized eigenvectors of the matrices `KX` and `KY`, respectively. Normalize by the eigenvalues.  
+
+5. **Calculate the loadings**: Calculate the loadings `P` and Q as the normalized inner product between `X` and `T`, and `Y` and `U`, respectively.
+
+---
+
+## Kernel PLS Algorithm Continued
+
+<span>6.</span> **Calculate the loading weights**: Calculate the loading weights `W` and `C` as the normalized eigenvectors of the matrix `X'PWY`, where `X'` is the transpose of `X`. Normalize by the eigenvalues.  
+
+<span>7.</span> **Calculate the coefficient matrix**: Calculate the coefficient matrix `B` as the product of `W` and `C'`.  
+
+<span>8.</span> **Update residual matrices**: Calculate the new residual matrices `E` and `F` as `E_new = E - TP'` and `F_new = F - UQ'`.  
+
+<span>9.</span> **Check convergence**: Check the convergence criterion. If `i < ncomp` and the residual matrices `E` and `F` have not converged, go to step 3 with `i = i + 1`. Otherwise, stop.   
+
+---
+
+## Kernel vs NIPALS
+
+* Kernel is much faster than NIPALS for large datasets where the number of observations (rows) is much larger than the number of observed (columns).  
+
+* Kernel algorithm calculates the kernel matrix KX and KY only once and uses the eigendecomposition of these matrices to calculate the scores, loadings, loading weights, and coefficients.  
+
+  * .font60[**Kernel trick** allows the algorithm to operate in a high-dimensional feature space without actually needing to compute the coordinates of the data in that space. Instead, the algorithm only needs to compute the inner product between pairs of data points in that space.]
+
+* The NIPALS algorithm calculates these quantities iteratively for each component, which is computationally expensive for large datasets.  
+
+* Kernal algorithm only deflates the Y-matrix while NIPALS deflates the X- and Y-matrices after each laten vector computation.  
 
 ---
 
@@ -282,9 +350,112 @@ cat(" PLS test RMSE:", round(rmse_pls, 1),"\n",
 
 ---
 
+
+## PLS on iris
+
+Suppose we want to predict the sepal length from all other variables.
+
+$$Y = \text{Sepal width}$$
+$$X_1 = \text{Petal length}$$
+$$X_2 = \text{Petal length}$$
+$$X_3 = \text{Petal width}$$
+
+```{r baby}
+head <- head(iris[1:4])
+library(kableExtra)
+head %>%
+  kbl(caption = "Iris dataset") %>%
+  kable_classic(full_width = F, html_font = "Cambria", position='float_left')
+library(knitr)
+
+MLR <- lm(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width, data=iris)
+library(car)
+vif <- t(vif(MLR))
+vif %>%
+  kbl(caption = "VIF values for MLR") %>%
+  kable_classic(full_width = F, html_font = "Cambria", position='right')
+```
+
+---
+
+## PLS on iris
+
+#### Check data for multicolinearity
+
+```{r colinearity, echo = FALSE, out.width='40%', out.extra='style="float:left; padding:20px"'}
+library(GGally)
+ggpairs(iris, columns = c('Sepal.Length', 'Sepal.Width',  'Petal.Length', 'Petal.Width'), upper = list(continuous = "smooth"), lower = list(continuous = "cor") )
+```
+
+Petal length and petal width appear to be highly correlated. 
+
+
+#### Why should partial least squares be used here?
+
+ - Partial Least Squares Regression is able to deal with multicolinearity by creating new variables called PLS components that are uncorrelated.
+ - Unlike Principal Components Regression, PLS considers both the response and predictor variables for superior predictions.
+
+---
+
+## PLS on iris
+
+Since multicolineariy is present, the iris dataset is a good candidate for partial least squares regression.
+
+```{r PLS, echo = TRUE}
+library(pls)
+set.seed(1)
+PLSmodel <- plsr(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width,
+                 data=iris, scale=TRUE, validation="CV")
+summary(PLSmodel)
+```
+---
+
+## PLS on iris
+
+### Finding the optimal model
+
+```{r RMSE, echo = TRUE, fig.show="hold", out.width="25%"}
+validationplot(PLSmodel, main='RMSEP vs components')
+validationplot(PLSmodel, val.type="MSEP", main='MSEP vs components')
+validationplot(PLSmodel, val.type="R2", main='R squared vs components')
+```
+
+As the number of components increases, root mean squared error decreases, Mean squared error prediction decreases, and R squared increases. Therefore all three components should be used.
+
+---
+
+## PLS on iris
+
+### Creating the optimal model
+
+```{r final, echo = TRUE, fig.show="hold", out.width="33%"}
+# Create a training dataset
+training <- iris[1:120, c('Sepal.Length', 'Sepal.Width', 'Petal.Length', 'Petal.Width')]
+
+# Create a testing dataset for Y
+yTest <- iris[121:nrow(iris), c('Sepal.Length')]
+
+# Create a testing dataset for X
+test <- iris[121:nrow(iris), c('Sepal.Width', 'Petal.Length', 'Petal.Width')]
+
+# Build final model based off optimal component values
+finalModel <- plsr(Sepal.Length~Sepal.Width+Petal.Length+Petal.Width,
+                   data=training, scale=TRUE, validation='CV')
+
+# Predict values and calculate RMSE
+predictor <- predict(finalModel, test, ncomp=3)
+RMSE <- sqrt(mean((predictor - yTest)^2))
+```
+
+The average deviation between the predicted sepal length and the actual observed sepal length is `r RMSE`.
+
+---
+
 ## References
 .font60[
 * Abdi H, Williams LJ. Partial least squares methods: partial least squares correlation and partial least square regression. Methods Mol Biol. 2013;930:549-79. doi: 10.1007/978-1-62703-059-5_23. PMID: 23086857.
+
+* Dayal, B., & MacGregor, J. (1997). Improved PLS algorithms. Journal of Chemometrics, 11(1), 73-85.
 
 * Dunn, Kevin. “6.7 A Conceptual Explanation of PLS.” Process Improvement Using Data, 1 Feb. 2023, https://learnche.org/pid/latent-variable-modelling/projection-to-latent-structures/conceptual-mathematical-and-geometric-interpretation-of-pls. 
 
