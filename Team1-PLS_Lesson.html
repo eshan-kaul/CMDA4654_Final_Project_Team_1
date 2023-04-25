@@ -674,33 +674,12 @@ We implemented the PLS model by creating 5 components, and found that it provide
 
 ```r
 pcr_model &lt;- pcr(y ~ ., data = train, scale = TRUE, validation = "CV",ncomp = 5)
-validationplot(pcr_model, val.type = "RMSEP" )
 ```
-
-![](Team1-PLS_Lesson_files/figure-html/unnamed-chunk-11-1.png)&lt;!-- --&gt;
 
 ```r
-print(summary(pcr_model))
+validationplot(pcr_model, val.type = "RMSEP" )
 ```
-
-```
-Data: 	X dimension: 20 9 
-	Y dimension: 20 1
-Fit method: svdpc
-Number of components considered: 5
-
-VALIDATION: RMSEP
-Cross-validated using 10 random segments.
-       (Intercept)  1 comps  2 comps  3 comps  4 comps  5 comps
-CV           3.218    2.413    1.624    1.686    1.619    1.659
-adjCV        3.218    2.386    1.494    1.661    1.595    1.634
-
-TRAINING: % variance explained
-   1 comps  2 comps  3 comps  4 comps  5 comps
-X    34.44    56.49    74.87    83.59    89.75
-y    57.88    80.73    81.52    83.29    83.86
-NULL
-```
+&lt;img src="plot1.jpeg"  width="50%" height="5%"&gt;
 
 ---
 

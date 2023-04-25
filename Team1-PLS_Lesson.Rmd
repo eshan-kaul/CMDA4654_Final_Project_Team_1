@@ -497,9 +497,11 @@ We implemented the PLS model by creating 5 components, and found that it provide
 
 ```{r}
 pcr_model <- pcr(y ~ ., data = train, scale = TRUE, validation = "CV",ncomp = 5)
-validationplot(pcr_model, val.type = "RMSEP" )
-print(summary(pcr_model))
 ```
+```{r, eval=FALSE}
+validationplot(pcr_model, val.type = "RMSEP" )
+```
+<img src="plot1.jpeg"  width="50%" height="5%">
 
 ---
 
