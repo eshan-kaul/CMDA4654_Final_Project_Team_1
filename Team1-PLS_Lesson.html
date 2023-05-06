@@ -3,24 +3,11 @@
   <head>
     <title>Partial Least Squares</title>
     <meta charset="utf-8" />
-    <meta name="author" content="Eshan Kaul" />
+    <meta name="author" content="Nicholas Emig, Eshan Kaul, Anish Manikonda, Andrew Nutter, Ashwanth Sridhar" />
     <script src="Team1-PLS_Lesson_files/header-attrs-2.20/header-attrs.js"></script>
     <link href="Team1-PLS_Lesson_files/remark-css-0.0.1/default.css" rel="stylesheet" />
-    <script src="Team1-PLS_Lesson_files/htmlwidgets-1.6.1/htmlwidgets.js"></script>
-    <link href="Team1-PLS_Lesson_files/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
-    <script src="Team1-PLS_Lesson_files/datatables-binding-0.27/datatables.js"></script>
-    <script src="Team1-PLS_Lesson_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
-    <link href="Team1-PLS_Lesson_files/dt-core-1.12.1/css/jquery.dataTables.min.css" rel="stylesheet" />
-    <link href="Team1-PLS_Lesson_files/dt-core-1.12.1/css/jquery.dataTables.extra.css" rel="stylesheet" />
-    <script src="Team1-PLS_Lesson_files/dt-core-1.12.1/js/jquery.dataTables.min.js"></script>
-    <script src="Team1-PLS_Lesson_files/jszip-1.12.1/jszip.min.js"></script>
-    <link href="Team1-PLS_Lesson_files/dt-ext-buttons-1.12.1/css/buttons.dataTables.min.css" rel="stylesheet" />
-    <script src="Team1-PLS_Lesson_files/dt-ext-buttons-1.12.1/js/dataTables.buttons.min.js"></script>
-    <script src="Team1-PLS_Lesson_files/dt-ext-buttons-1.12.1/js/buttons.html5.min.js"></script>
-    <script src="Team1-PLS_Lesson_files/dt-ext-buttons-1.12.1/js/buttons.colVis.min.js"></script>
-    <script src="Team1-PLS_Lesson_files/dt-ext-buttons-1.12.1/js/buttons.print.min.js"></script>
-    <link href="Team1-PLS_Lesson_files/crosstalk-1.2.0/css/crosstalk.min.css" rel="stylesheet" />
-    <script src="Team1-PLS_Lesson_files/crosstalk-1.2.0/js/crosstalk.min.js"></script>
+    <script src="Team1-PLS_Lesson_files/kePrint-0.0.1/kePrint.js"></script>
+    <link href="Team1-PLS_Lesson_files/lightable-0.0.1/lightable.css" rel="stylesheet" />
     <script type="text/x-mathjax-config">
       MathJax.Hub.Config({
         TeX: { equationNumbers: { autoNumber: "AMS" } },
@@ -44,13 +31,13 @@ class: center, middle, inverse, title-slide
 # Partial Least Squares
 ]
 .subtitle[
-## CMDA 4654 Final Project
+## CMDA 4654 Project 2
 ]
 .author[
-### Eshan Kaul
+### Nicholas Emig, Eshan Kaul, Anish Manikonda, Andrew Nutter, Ashwanth Sridhar
 ]
 .date[
-### April 2023
+### Group 1
 ]
 
 ---
@@ -58,379 +45,383 @@ class: center, middle, inverse, title-slide
 
 
 
-## Slide 1 
+
+
+## Overview
+* Background/Motivation
+
+* PLS Algorithms  
+
+  * NIPALS  
+  
+  * Kernel  
+
+* Mtcars Example  
+
+* Iris Example
+
+* Sports Example
+
+???
+Hi everyone, my name is Ashwanth and today I am joined with my classmates Eshan, Anish, Andrew, and Nick to teach you guys about Partial Least Squares.
+
+We will begin with a background and motivation, talk about theory and algorithms, and continue with examples using Mtcars, iris, and sports datasets.
 
 ---
 
+## Background
 
-## Slide 2
+* Partial Least Squares or projection to latent structures is a collection of regression based method designed for the analysis of high dimensional data in a low-structure environment. 
 
+* Developed by econometrician Herman Wold in the late sixties
 
----
+* Has use in many disciplines including bioinformatics, economics, social science, and **chemometrics**
 
-## Data tables &lt;svg viewBox="0 0 512 512" style="height:1em;display:inline-block;position:fixed;top:10;right:10;" xmlns="http://www.w3.org/2000/svg"&gt;  &lt;path d="M464 32H48C21.49 32 0 53.49 0 80v352c0 26.51 21.49 48 48 48h416c26.51 0 48-21.49 48-48V80c0-26.51-21.49-48-48-48zM224 416H64v-96h160v96zm0-160H64v-96h160v96zm224 160H288v-96h160v96zm0-160H288v-96h160v96z"&gt;&lt;/path&gt;&lt;/svg&gt;
-
-.font80[
-
-```r
-library("DT"); library("dplyr")
-iris %&gt;% 
-  DT::datatable(class = "compact", rownames = FALSE, extensions = "Buttons",
-                options = list(dom = 'tBp', buttons = c("csv","excel"), 
-                               pageLength = 8)) %&gt;% 
-  DT::formatRound(1:4, digits = 1) 
-```
-
-<div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-8b818028c24ca72d654e" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-8b818028c24ca72d654e">{"x":{"filter":"none","vertical":false,"extensions":["Buttons"],"data":[[5.1,4.9,4.7,4.6,5,5.4,4.6,5,4.4,4.9,5.4,4.8,4.8,4.3,5.8,5.7,5.4,5.1,5.7,5.1,5.4,5.1,4.6,5.1,4.8,5,5,5.2,5.2,4.7,4.8,5.4,5.2,5.5,4.9,5,5.5,4.9,4.4,5.1,5,4.5,4.4,5,5.1,4.8,5.1,4.6,5.3,5,7,6.4,6.9,5.5,6.5,5.7,6.3,4.9,6.6,5.2,5,5.9,6,6.1,5.6,6.7,5.6,5.8,6.2,5.6,5.9,6.1,6.3,6.1,6.4,6.6,6.8,6.7,6,5.7,5.5,5.5,5.8,6,5.4,6,6.7,6.3,5.6,5.5,5.5,6.1,5.8,5,5.6,5.7,5.7,6.2,5.1,5.7,6.3,5.8,7.1,6.3,6.5,7.6,4.9,7.3,6.7,7.2,6.5,6.4,6.8,5.7,5.8,6.4,6.5,7.7,7.7,6,6.9,5.6,7.7,6.3,6.7,7.2,6.2,6.1,6.4,7.2,7.4,7.9,6.4,6.3,6.1,7.7,6.3,6.4,6,6.9,6.7,6.9,5.8,6.8,6.7,6.7,6.3,6.5,6.2,5.9],[3.5,3,3.2,3.1,3.6,3.9,3.4,3.4,2.9,3.1,3.7,3.4,3,3,4,4.4,3.9,3.5,3.8,3.8,3.4,3.7,3.6,3.3,3.4,3,3.4,3.5,3.4,3.2,3.1,3.4,4.1,4.2,3.1,3.2,3.5,3.6,3,3.4,3.5,2.3,3.2,3.5,3.8,3,3.8,3.2,3.7,3.3,3.2,3.2,3.1,2.3,2.8,2.8,3.3,2.4,2.9,2.7,2,3,2.2,2.9,2.9,3.1,3,2.7,2.2,2.5,3.2,2.8,2.5,2.8,2.9,3,2.8,3,2.9,2.6,2.4,2.4,2.7,2.7,3,3.4,3.1,2.3,3,2.5,2.6,3,2.6,2.3,2.7,3,2.9,2.9,2.5,2.8,3.3,2.7,3,2.9,3,3,2.5,2.9,2.5,3.6,3.2,2.7,3,2.5,2.8,3.2,3,3.8,2.6,2.2,3.2,2.8,2.8,2.7,3.3,3.2,2.8,3,2.8,3,2.8,3.8,2.8,2.8,2.6,3,3.4,3.1,3,3.1,3.1,3.1,2.7,3.2,3.3,3,2.5,3,3.4,3],[1.4,1.4,1.3,1.5,1.4,1.7,1.4,1.5,1.4,1.5,1.5,1.6,1.4,1.1,1.2,1.5,1.3,1.4,1.7,1.5,1.7,1.5,1,1.7,1.9,1.6,1.6,1.5,1.4,1.6,1.6,1.5,1.5,1.4,1.5,1.2,1.3,1.4,1.3,1.5,1.3,1.3,1.3,1.6,1.9,1.4,1.6,1.4,1.5,1.4,4.7,4.5,4.9,4,4.6,4.5,4.7,3.3,4.6,3.9,3.5,4.2,4,4.7,3.6,4.4,4.5,4.1,4.5,3.9,4.8,4,4.9,4.7,4.3,4.4,4.8,5,4.5,3.5,3.8,3.7,3.9,5.1,4.5,4.5,4.7,4.4,4.1,4,4.4,4.6,4,3.3,4.2,4.2,4.2,4.3,3,4.1,6,5.1,5.9,5.6,5.8,6.6,4.5,6.3,5.8,6.1,5.1,5.3,5.5,5,5.1,5.3,5.5,6.7,6.9,5,5.7,4.9,6.7,4.9,5.7,6,4.8,4.9,5.6,5.8,6.1,6.4,5.6,5.1,5.6,6.1,5.6,5.5,4.8,5.4,5.6,5.1,5.1,5.9,5.7,5.2,5,5.2,5.4,5.1],[0.2,0.2,0.2,0.2,0.2,0.4,0.3,0.2,0.2,0.1,0.2,0.2,0.1,0.1,0.2,0.4,0.4,0.3,0.3,0.3,0.2,0.4,0.2,0.5,0.2,0.2,0.4,0.2,0.2,0.2,0.2,0.4,0.1,0.2,0.2,0.2,0.2,0.1,0.2,0.2,0.3,0.3,0.2,0.6,0.4,0.3,0.2,0.2,0.2,0.2,1.4,1.5,1.5,1.3,1.5,1.3,1.6,1,1.3,1.4,1,1.5,1,1.4,1.3,1.4,1.5,1,1.5,1.1,1.8,1.3,1.5,1.2,1.3,1.4,1.4,1.7,1.5,1,1.1,1,1.2,1.6,1.5,1.6,1.5,1.3,1.3,1.3,1.2,1.4,1.2,1,1.3,1.2,1.3,1.3,1.1,1.3,2.5,1.9,2.1,1.8,2.2,2.1,1.7,1.8,1.8,2.5,2,1.9,2.1,2,2.4,2.3,1.8,2.2,2.3,1.5,2.3,2,2,1.8,2.1,1.8,1.8,1.8,2.1,1.6,1.9,2,2.2,1.5,1.4,2.3,2.4,1.8,1.8,2.1,2.4,2.3,1.9,2.3,2.5,2.3,1.9,2,2.3,1.8],["setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","setosa","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","versicolor","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica","virginica"]],"container":"<table class=\"compact\">\n  <thead>\n    <tr>\n      <th>Sepal.Length<\/th>\n      <th>Sepal.Width<\/th>\n      <th>Petal.Length<\/th>\n      <th>Petal.Width<\/th>\n      <th>Species<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"tBp","buttons":["csv","excel"],"pageLength":8,"columnDefs":[{"targets":0,"render":"function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatRound(data, 1, 3, \",\", \".\", null);\n  }"},{"targets":1,"render":"function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatRound(data, 1, 3, \",\", \".\", null);\n  }"},{"targets":2,"render":"function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatRound(data, 1, 3, \",\", \".\", null);\n  }"},{"targets":3,"render":"function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatRound(data, 1, 3, \",\", \".\", null);\n  }"},{"className":"dt-right","targets":[0,1,2,3]}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[8,10,25,50,100]}},"evals":["options.columnDefs.0.render","options.columnDefs.1.render","options.columnDefs.2.render","options.columnDefs.3.render"],"jsHooks":[]}</script>
+* Many different variations exist:
+.font90.pull-left[
+* PLS-W2A
+* PLS1
+* PLS2
+* PLS-SVD
+* Mode B PLS (Canonical Correlation Analysis)
+* PLS-R
+* PLS-DA
+* PLS-PM
+  ]
+.font90.pull-right[
+* PLS-SEM
+* OPLS
+* L-PLS
+* SPLS
+* Nonlinear Iterative Partial Least Squares (NIPALS)
+* SIMPLS
+* KernalPLS
 ]
 
----
+???
 
-## FAQ &lt;svg viewBox="0 0 512 512" style="height:1em;display:inline-block;position:fixed;top:10;right:10;" xmlns="http://www.w3.org/2000/svg"&gt;  &lt;path d="M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 448c-110.532 0-200-89.431-200-200 0-110.495 89.472-200 200-200 110.491 0 200 89.471 200 200 0 110.53-89.431 200-200 200zm107.244-255.2c0 67.052-72.421 68.084-72.421 92.863V300c0 6.627-5.373 12-12 12h-45.647c-6.627 0-12-5.373-12-12v-8.659c0-35.745 27.1-50.034 47.579-61.516 17.561-9.845 28.324-16.541 28.324-29.579 0-17.246-21.999-28.693-39.784-28.693-23.189 0-33.894 10.977-48.942 29.969-4.057 5.12-11.46 6.071-16.666 2.124l-27.824-21.098c-5.107-3.872-6.251-11.066-2.644-16.363C184.846 131.491 214.94 112 261.794 112c49.071 0 101.45 38.304 101.45 88.8zM298 368c0 23.159-18.841 42-42 42s-42-18.841-42-42 18.841-42 42-42 42 18.841 42 42z"&gt;&lt;/path&gt;&lt;/svg&gt;
+PLS uses a projection to latent structures which are uncorrelated or orthogonal, linear combinations of predictors used to analyze high dimensional data or data with many predictors in a low structure environment, making it similar to PCR, with some differences. This method was developed by Econometrician Herman World in the late 60s and is now used in disciplines such as psychology, economics, political science, and chemistry.
 
-&lt;blockquote&gt;
-How do I start a new slide? 
-&lt;/blockquote&gt;
+There are many different variations of PLS including PLS-SVD, PLS Canonical, PLS discriminant analysis, Orthogonal Projection PLS, Nonlinear Iterative PLS, and Kernel PLS, some of which will be discussed further in detail later in the presentation. The first four PLS options all use 1 principal component and have a univariate response. PLS Sem uses path mapping to identify principal components. PLS R uses regression methods. SIMPLS and KernalPLS are more efficient algorithms that identify principal components.
 
-Using three dashes at the start of a new line &lt;code&gt;---&lt;/code&gt;
 
---
-
-&lt;blockquote&gt;
-I have three dashes but it's not starting a new slide.  
-&lt;/blockquote&gt;
-
-The three dashes need to be on their own line with **no spaces after them**
-
---
-
-&lt;blockquote&gt;
-I'm giving my presentation but the text is too small. HELP!
-&lt;/blockquote&gt;
-
-By default remark.js disables browser based zooming. I've found and modified a hack to re-enable it, but it's not perfect. [`remark-zoom.js`](https://github.com/William-Yeh/remark-zoom) I'm also open to increasing the default font size - need to test it out on a range of displays.
-
----
-class: center, middle
-
-# Text adjustments
-
-It is also possible to change the .blue[color] of any text by using `.color[text here]`
-
---
-
-For example `.grey[grey]` will make text .grey[grey].
-
---
-
-We can do this with white, .brand-red[Sydney master brand red], .brand-blue[Sydney master brand blue], .brand-yellow[Sydney master brand yellow], .brand-charcoal[Sydney master brand charcoal], .brand-grey[Sydney master brand grey], .black[black], .red[red], .blue[blue], .green[green], .yellow[yellow], .orange[orange], .purple[purple], .grey[grey].
-
---
-
-To make text stand out we can use standard markdown `**text**` like **this** 
-or `.bold[this]` .bold[this].  Or italics using `_italic_` _italic_.
-
-You can string together these formats, e.g. `.blue[.bold[...]]` 
-to get .blue[.bold[blue and bold text]].
-
---
-
-.left[.footnote[The text on this slide is centered and in the middle of the slide because the slide began with:
-```
----
-class: center, middle
-```
-
-]]
-
----
-class: vt-chicago-marroon
-
-## Two columns! &lt;svg viewBox="0 0 512 512" style="height:1em;display:inline-block;position:fixed;top:10;right:10;" xmlns="http://www.w3.org/2000/svg"&gt;  &lt;path d="M464 32H48C21.49 32 0 53.49 0 80v352c0 26.51 21.49 48 48 48h416c26.51 0 48-21.49 48-48V80c0-26.51-21.49-48-48-48zM224 416H64V160h160v256zm224 0H288V160h160v256z"&gt;&lt;/path&gt;&lt;/svg&gt;
-
-.pull-left[
-
-### Some things on the left
-
-1. List of things;
-
-1. Plain Markdown;
-
-1. blah blah; and
-
-1. Plain Markdown
-
-]
-
---
-
-.pull-right[
-
-### and other things on the right
-
-We do this by using the `.pull-left[]` and `.pull-right[]` commands. Just put any text inside the  brackets and you're good to go
-
-]
-
-Code below (or above) these two has no problem extending the full width of the slide.
-
-.footnote[The background of this slide is Sydney University Yellow because the slide began with:
-```
----
-class: sydney-yellow
-```
-]
+PLS-DA = Discriminant Analysis  
+PLS-PM = Path Modeling  
+PLS-SEM = Squares Path Modeling  
+OPLS = Orthogonal Projections to Latent Structures  
+SPLS = Sparse Partial Least Squares  
 
 ---
 
-## R code and highlighting &lt;svg viewBox="0 0 581 512" style="height:1em;display:inline-block;position:fixed;top:10;right:10;" xmlns="http://www.w3.org/2000/svg"&gt;  &lt;path d="M581 226.6C581 119.1 450.9 32 290.5 32S0 119.1 0 226.6C0 322.4 103.3 402 239.4 418.1V480h99.1v-61.5c24.3-2.7 47.6-7.4 69.4-13.9L448 480h112l-67.4-113.7c54.5-35.4 88.4-84.9 88.4-139.7zm-466.8 14.5c0-73.5 98.9-133 220.8-133s211.9 40.7 211.9 133c0 50.1-26.5 85-70.3 106.4-2.4-1.6-4.7-2.9-6.4-3.7-10.2-5.2-27.8-10.5-27.8-10.5s86.6-6.4 86.6-92.7-90.6-87.9-90.6-87.9h-199V361c-74.1-21.5-125.2-67.1-125.2-119.9zm225.1 38.3v-55.6c57.8 0 87.8-6.8 87.8 27.3 0 36.5-38.2 28.3-87.8 28.3zm-.9 72.5H365c10.8 0 18.9 11.7 24 19.2-16.1 1.9-33 2.8-50.6 2.9v-22.1z"&gt;&lt;/path&gt;&lt;/svg&gt;
+## Motivation
 
-.pull-left[
-An example using a leading `*`:
+* The goal of PLS regression is to predict Y from X and describe their common structure.
+* When `\(Y\)` is a vector and `\(X\)` is full rank this can be solved by MLR
+* However problems with this arise when `\(X\)` is likely to be singular
+  * when the number of predictors/features is large compared to the number of observations 
+  * when multicollinearity exists (feature matrix `\(X\)` has less than full rank)  
+[For detailed explanation see chapter 3](https://users.cecs.anu.edu.au/~kee/pls.pdf)
 
-```r
-if (TRUE) {
-** message("Very important!")
-}
-```
-Output:
-```r
-if (TRUE) {
-* message("Very important!")
-}
-```
-
-This is invalid R code, so it is a plain fenced code block that is not executed.
-]
-
-.pull-right[
-An example using `{{}}`:
-
-```{r tidy=FALSE}
-if (TRUE) {
-*{{ message("Very important!") }}
-}
-```
-Output:
-
-```r
-if (TRUE) {
-* message("Very important!") 
-}
-```
-
-```
-## Very important!
-```
-
-It is valid R code so you can run it.
-]
-
+???
+The main motivation for PLS is to predict Y from X and develop an understanding of their relation. Typically, when data is long, having few predictors and many observations, MLR or multiple linear regression can be used. However there are two major issues with this form of analysis. MLR cannot be used when there are fewer observations than predictors because this would create a rank deficient least squares problem and MLR also has issues while dealing with multicollinearity which is when different predictors have interaction with one another. To avoid dealing with these problems, PCR or PLS can be used.
 
 ---
 
-## R code and plot output &lt;svg viewBox="0 0 581 512" style="height:1em;display:inline-block;position:fixed;top:10;right:10;" xmlns="http://www.w3.org/2000/svg"&gt;  &lt;path d="M581 226.6C581 119.1 450.9 32 290.5 32S0 119.1 0 226.6C0 322.4 103.3 402 239.4 418.1V480h99.1v-61.5c24.3-2.7 47.6-7.4 69.4-13.9L448 480h112l-67.4-113.7c54.5-35.4 88.4-84.9 88.4-139.7zm-466.8 14.5c0-73.5 98.9-133 220.8-133s211.9 40.7 211.9 133c0 50.1-26.5 85-70.3 106.4-2.4-1.6-4.7-2.9-6.4-3.7-10.2-5.2-27.8-10.5-27.8-10.5s86.6-6.4 86.6-92.7-90.6-87.9-90.6-87.9h-199V361c-74.1-21.5-125.2-67.1-125.2-119.9zm225.1 38.3v-55.6c57.8 0 87.8-6.8 87.8 27.3 0 36.5-38.2 28.3-87.8 28.3zm-.9 72.5H365c10.8 0 18.9 11.7 24 19.2-16.1 1.9-33 2.8-50.6 2.9v-22.1z"&gt;&lt;/path&gt;&lt;/svg&gt;
+## What is PLS
 
-
-```r
-library("tidyverse")
-cars %&gt;% 
-ggplot(aes(x = dist, y = speed)) + 
-geom_point() + 
-* geom_smooth(method = 'lm', # highlighted using {{...
-formula = y ~ poly(x, 2))}} + 
-theme_bw(base_size = 24) + 
-labs(y = "Speed (mph)", x = "Stopping distance (ft)")
-```
-
-&lt;img src="Team1-PLS_Lesson_files/figure-html/unnamed-chunk-3-1.png" width="864" style="display: block; margin: auto;" /&gt;
+* Partial Least Squares (PLS) is a multivariate regression method
+* The goal of PLS is to find a low-dimensional representation of the input data that captures the maximum covariance between the input and output variables
+* PLS works by iteratively extracting pairs of latent variables or "components" that capture the maximum covariance between the input and output variables
+* These components are then used to build a linear regression model
+* PLS is a useful method for high-dimensional data with many predictor variables
+* PLS can handle multicollinearity and non-linearity in the relationships between the predictor and response variables
 
 ---
 
-## Font sizes
+## Latent Modeling 
 
-.pull-left[
+![](LatentModel1.svg)
+![](LatentModel2.svg)
 
-.pull-left[
-.font10[.font10]
-.font20[.font20]
-.font30[.font30]
-.font40[.font40]
-.font50[.font50]
-.font60[.font60]
-.font70[.font70]
-.font80[.font80]
-.font90[.font90]
-Standard
-.font110[.font110]
-.font120[.font120]
-.font130[.font130]
-.font140[.font140]
-.font150[.font150]
-.font160[.font160]
-.font170[.font170]
-.font180[.font180]
-.font190[.font190]
-.font200[.font200]
+???
 
-]
-
-.pull-right[
-
-.code10[`.code10[]`]
-.code20[`.code20[]`]
-.code30[`.code30[]`]
-.code40[`.code40[]`]
-.code50[`.code50[]`]
-.code60[`.code60[]`]
-.code70[`.code70[]`]
-.code80[`.code80[]`]
-.code90[`.code90[]`]
-`standard`
-.code110[`.code110[]`]
-.code120[`.code120[]`]
-.code130[`.code130[]`]
-.code140[`.code140[]`]
-.code150[`.code150[]`]
-.code160[`.code160[]`]
-.code170[`.code170[]`]
-.code180[`.code180[]`]
-.code190[`.code190[]`]
-.code200[`.code200[]`]
-
-]
-
-]
-
-.pull-right[
-
-I've also enabled an alternate approach, that operates on all text: inline code, code chunks and regular text.
-
-.Large[.Large `.Large[]` 144%]
-
-.large[.large `.large[]` 120%]
-
-.small[.small `.small[]` 90%]
-
-.footnotesize[.footnotesize `.footnotesize[]` 80%] 
-
-.scriptsize[.scriptsize `.scriptsize[]` 70%] 
-
-.tiny[.tiny `.tiny[]` 60%]
-
-]
-
+Latent modeling uses linear combinations of predictors which are orthogonal to each other and try to find whichever combinations have the greatest covariance between the predictor and response. In PCR, it is assumed the input components are directly correlated with the output space. In PLS, the cross covariance is checked to ensure that the components are actually integral to the output space.
 
 ---
 
-## Font sizes
+## PCR vs PLS
 
-This is normal sized and coloured text. With a normal size code and output:
+* PCR uses the `\(X\)`-information to build components
+  * Choose basis vectors from low dimensional project that maximize variation of X
+  `$$\max\mathrm{Var}(X)$$`
+* PLS uses the `\(X\)` and `\(Y\)` information to build components by looking at the cross-covariance of `\(X\)` and `\(Y\)`
+  `$$\max\mathrm{Cov}(X,Y)$$`
+* PLS and PCR often predict with similar performance &amp; level of error
+* PLS generally able to predict with fewer components  
+
+???
+As mentioned in the previous slide, PCR uses only the input space to make predictions on the data. This is because PCR aims to maximize variance between the predictors. However, PLS uses information from the predictors and the response to maximize the cross covariance. Although they use different methods, both PLS and PCR often predict with the same level of accuracy. Generally though, PLS is able to use fewer components due to the cross-validation.
+
+---
+
+## Visulization of PLS
+![](geometric-interpretation-of-PLS-step1.png)
+
+---
+
+## Visulization of PLS
+
+![](geometric-interpretation-of-PLS-step2.png)
+
+---
+
+## PLS Algorithm
+
+Let `\(X \in \mathbb{R}^{n \times d}\)` and `\(Y \in \mathbb{R}^{n \times t}\)` be centered matrices, and `\(K\)` is the number of components. Then for each `\(k \in [1, K]\)`:
+
+1. Compute the first pair of singular vectors `\(X_k^T Y_k\)`. `\(u_k \in \mathbb{R}^d\)` and `\(v_k \in \mathbb{R}^t\)`, the first left and right singular vectors of the cross-covariance matrix `\(C = X_k^T Y_k\)`.  
+
+  1A.  Note `\(u_k\)` and `\(v_k\)` are weights that maximize the covariance between the `\(X_k\)` and `\(\text{Cov}(X_k u_k, Y_k v_k)\)`  
+
+2. Project `\(X_k\)` and `\(Y_k\)` on the singular vectors obtaining the scores `\(\xi_k = X_k u_k\)` and `\(\omega_k = Y_k v_k\)`  
+
+3. Obtain the rank-one approximations of the data matrices (loading vectors): 
+
+  3A. Regress `\(X_k\)` on `\(\xi_k\)` to get `\(\gamma_k^T = (\xi_k^T \xi_k)^{-1}\, \xi_k^T X_k\)`  
+  
+  3B. Regress `\(Y_k\)` on `\(\omega_k\)` to get `\(\delta_k^T = (\omega_k^T \omega_k)^{-1}\, \omega_k^T Y_k\)`  
+
+---
+
+## PLS Algorithm Continued
+  
+&lt;span&gt;4.&lt;/span&gt; Deflate `\(X_k\)` and `\(Y_k\)` by subtracting the rank-one approximations:   
+
+&amp;nbsp; &amp;nbsp; 4A. `\(X_{k+1} = X_k - \xi_k \gamma_k^T\)`  
+  
+&amp;nbsp; &amp;nbsp; 4B. `\(Y_{k + 1} = Y_k - \omega_k \delta_k^T\)`  
+  
+&lt;span&gt;5.&lt;/span&gt; If `\(X_{k+1}^T Y_{k + 1} = 0\)`  
+
+&amp;nbsp; &amp;nbsp; 5A. `\(K \leftarrow k\)` (Note this is the rank or dimension of the PLS model)  
+
+&amp;nbsp; &amp;nbsp; 5B. Stop/Exit loop  
+
+Else continue.  
+  
+&lt;span&gt;6.&lt;/span&gt; `\(k \leftarrow k+1\)`  
+
+&lt;span&gt;7.&lt;/span&gt; Return to step 1
+
+---
+
+## PLS Algorithm Continued
+
+In the end we have decomposed `\(\mathbf{X}\)` and `\(\mathbf{Y}\)` by expressing each as the sum of mutually orthogonal rank-one matrices, plus a residual:
+
+`$$\left.\begin{array}{rl}
+\mathbf{X} &amp; =\widehat{\mathbf{X}}^{(1)}\left(\boldsymbol{\xi}_1\right)+\ldots+\widehat{\mathbf{X}}^{(K)}\left(\boldsymbol{\xi}_K\right)+\mathbf{X}^{(K+1)} \\
+&amp; =\boldsymbol{\xi}_1 \gamma_1^T+\ldots+\boldsymbol{\xi}_K \gamma_K^T+\mathbf{X}^{(K+1)} \\
+&amp; =\Xi \Gamma^T+\mathbf{X}^{(K+1)} \\
+\text { and } &amp; \\
+\mathbf{Y} &amp; =\widehat{\mathbf{Y}}^{(1)}\left(\omega_1\right)+\ldots+\widehat{\mathbf{Y}}^{(K)}\left(\omega_K\right)+\mathbf{Y}^{(K+1)} \\
+&amp; =\omega_1 \delta_1^T+\ldots+\omega_K \boldsymbol{\delta}_K^T+\mathbf{Y}^{(K+1)} \\
+&amp; =\boldsymbol{\Omega} \Delta^T+\mathbf{Y}^{(K+1)}
+\end{array}\right\}$$`
+
+---
+
+## Kernel PLS Algorithm
+
+1. **Preprocessing**: If `center = TRUE`, the mean of each column of `X` and `Y` is subtracted from the corresponding column. Otherwise, the data are used as is.  
+
+2. **Initialize**: Set `i = 1`, initialize the residual matrices `E` and `F` as `X` and `Y`, respectively.  
+
+3. **Calculate the kernel matrices**: Calculate the kernel matrix KX as the inner product between the preprocessed X data and itself, and the kernel matrix KY as the inner product between the preprocessed Y data and itself.  
+
+4. **Calculate the scores**: Calculate the scores `T` and `U` as the normalized eigenvectors of the matrices `KX` and `KY`, respectively. Normalize by the eigenvalues.  
+
+5. **Calculate the loadings**: Calculate the loadings `P` and Q as the normalized inner product between `X` and `T`, and `Y` and `U`, respectively.
+
+---
+
+## Kernel PLS Algorithm Continued
+
+&lt;span&gt;6.&lt;/span&gt; **Calculate the loading weights**: Calculate the loading weights `W` and `C` as the normalized eigenvectors of the matrix `X'PWY`, where `X'` is the transpose of `X`. Normalize by the eigenvalues.  
+
+&lt;span&gt;7.&lt;/span&gt; **Calculate the coefficient matrix**: Calculate the coefficient matrix `B` as the product of `W` and `C'`.  
+
+&lt;span&gt;8.&lt;/span&gt; **Update residual matrices**: Calculate the new residual matrices `E` and `F` as `E_new = E - TP'` and `F_new = F - UQ'`.  
+
+&lt;span&gt;9.&lt;/span&gt; **Check convergence**: Check the convergence criterion. If `i &lt; ncomp` and the residual matrices `E` and `F` have not converged, go to step 3 with `i = i + 1`. Otherwise, stop.   
+
+---
+
+## Kernel vs NIPALS
+
+* Kernel is much faster than NIPALS for large datasets where the number of observations (rows) is much larger than the number of observed (columns).  
+
+* Kernel algorithm calculates the kernel matrix KX and KY only once and uses the eigendecomposition of these matrices to calculate the scores, loadings, loading weights, and coefficients.  
+
+  * .font60[**Kernel trick** allows the algorithm to operate in a high-dimensional feature space without actually needing to compute the coordinates of the data in that space. Instead, the algorithm only needs to compute the inner product between pairs of data points in that space.]
+
+* The NIPALS algorithm calculates these quantities iteratively for each component, which is computationally expensive for large datasets.  
+
+* Kernal algorithm only deflates the Y-matrix while NIPALS deflates the X- and Y-matrices after each laten vector computation.  
+
+---
+
+## PLS on mtcars
+
+Step-by-step demonstration on how to perform partial least squares on the built-in R dataset: mtcars
+
+#### Step 1: Load 'pls' Package
 
 
 ```r
-rnorm(2)
+# Load pls package
+library(pls)
+
+# View first six rows of mtcars dataset
+kable(head(mtcars), format = "markdown")
 ```
 
-```
-## [1]  1.778903 -2.552619
-```
 
-.blue[.small[This blue text is in a `.blue[.small[...]]` chunk. Everything is shrunk to 90% including the `inline code` as well as code chunks and their output:
+
+|                  |  mpg| cyl| disp|  hp| drat|    wt|  qsec| vs| am| gear| carb|
+|:-----------------|----:|---:|----:|---:|----:|-----:|-----:|--:|--:|----:|----:|
+|Mazda RX4         | 21.0|   6|  160| 110| 3.90| 2.620| 16.46|  0|  1|    4|    4|
+|Mazda RX4 Wag     | 21.0|   6|  160| 110| 3.90| 2.875| 17.02|  0|  1|    4|    4|
+|Datsun 710        | 22.8|   4|  108|  93| 3.85| 2.320| 18.61|  1|  1|    4|    1|
+|Hornet 4 Drive    | 21.4|   6|  258| 110| 3.08| 3.215| 19.44|  1|  0|    3|    1|
+|Hornet Sportabout | 18.7|   8|  360| 175| 3.15| 3.440| 17.02|  0|  0|    3|    2|
+|Valiant           | 18.1|   6|  225| 105| 2.76| 3.460| 20.22|  1|  0|    3|    1|
+---
+## PLS on mtcars
+	
+#### Step 2: Fit Partial Least Squares model
+	
+The following code shows how to fit the PLS model to this data.
 
 
 ```r
-rnorm(2)
-```
+# Make this example reproducible
+set.seed(1)
 
+# Fit PLS model
+model &lt;- plsr(hp ~ mpg + disp + drat + wt + qsec, 
+              data = mtcars,
+              scale = TRUE, 
+              validation = "CV")
 ```
-## [1] -1.1322207  0.1610149
-```
+Note:
 
-]]
+* scale=TRUE: Ensures that no predictor variable is overly influential in the model if it happens to be measured in different units.
 
+* validation=”CV”: Used for k-fold cross-validation to evaluate the performance of the model. This uses k=10 folds by default.
 ---
-class: columns-2
+## PLS on mtcars
 
-## Equations
+#### Step 3: Choose the Number of PLS Components
 
-
-MathJax is supported out of the box.  You can put inline equations inside dollar signs, e.g. `$\alpha + \beta$` renders as `\(\alpha + \beta\)`.   Display style works with double dollar signs: 
-
-&lt;span&gt;`$`&lt;/span&gt;&lt;span&gt;`$`&lt;/span&gt;`\bar{X} = \frac{1}{n} \sum_{i=1}^n X_i`&lt;span&gt;`$`&lt;/span&gt;&lt;span&gt;`$`&lt;/span&gt;
-`$$\bar{X} = \frac{1}{n}\sum_{i=1}^n X_i$$`
-For multi-line equations you can use &lt;span&gt;`\`&lt;/span&gt;`begin{align} ...  `&lt;/span&gt;`\`&lt;/span&gt;`end{align}`
-`\begin{align}
-\bar{X} &amp; = X_1 + X_2 + \ldots + X_n \nonumber \\
-&amp; = \frac{1}{n}\sum_{i=1}^nX_i \label{good-eq}
-\end{align}`
-Note the equation number! We can reference it in the usual way, using &lt;span&gt;`\`&lt;/span&gt;`eqref{label}`, \eqref{good-eq}, or &lt;span&gt;`\`&lt;/span&gt;`ref{label}`, \ref{good-eq}.
-
----
-
-## Equation numbering
-
-Equation numbering isn't part of the standard xaringan package but I've included it with the theme.  This is enabled with the inclusion of the `in_header` line in the YAML with reference to the file `mathjax-equation-numbers.html` which needs to be in an appropriate location.
-
-```
-output:
-xaringan::moon_reader:
-includes:
-*      in_header: "assets/mathjax-equation-numbers.html"
-```
-
----
-
-## Central limit theorem 
-
-
-Let `\(X_{1}, X_{2},\ldots\)` be independent random variables with characteristic functions `\(\phi_{1},\phi_{2},\ldots\)` and distribution functions `\(F_{1},F_{2},\ldots\)` and let `\(\mathbb{E} X_{i}=0\)` and `\(\mathbb{E} X_{i}^{2}=\sigma_{i}^{2}&lt;\infty\)`, `\(i=1,2,\ldots\)`.
-
-Write `\(S_{n} = \sum_{i=1}^{n}X_{i}\)` and `\(s_{n}=\textrm{Var}(S_{n}) = \sum_{i=1}^{n}\sigma^{2}_{i}\)`.  Let
-`\begin{align}
-L_{n}(\varepsilon) &amp; = s^{-2}_{n}\sum_{i=1}^{n}\mathbb{E}\big[ X_{i}^{2}\mathbb{I}\big(|X_{i}|&gt;\varepsilon s_{n}\big)\big] \nonumber \\
-&amp; = s_{n}^{-2}\sum_{i=1}^{n}\int_{|x|&gt;\varepsilon s_{n}}x^{2}\operatorname{d}F_{n}(x)
-\end{align}`
-The _Lindeberg condition_ states:
-`$$\begin{equation}\text{for all } \varepsilon&gt;0,\ L_{n}(\varepsilon)\rightarrow0 \text{ as }n\rightarrow\infty.\label{LindCond}\end{equation}$$`
-If `\(\mathbb{E}|X_{1}|^{3}&lt;\infty\)` and `\(s_{n}^{-3}\sum_{i=1}^{n}\mathbb{E}|X_{i}^{3}|\rightarrow 0\)` as `\(n\rightarrow\infty\)` then Lindeberg's condition holds.  This condition under which the Lindeberg's condition holds is known as Liapounov's condition \eqref{LindCond}.
-
-
----
-
-# Tables
-
-.pull-left[
-
-- Tables are centered by default in **xaringan**. 
-- We can override this using `.pull-left[]` and 
-`.pull-right[]`
-
-
-
-
-|  This |  is |   a    |    table     |
-| :---- | :-- | -----: | :----------: |
-| It is | now | pulled | to the left  |
-| 12    | 34  | 56     |      78      |
-
-]
-
-.pull-right[
 
 ```r
-knitr::kable(iris[1:10, 1:4], 
-format = "html")
+# View summary of model fitting
+summary(model)
 ```
-.small[
-&lt;table&gt;
+
+```
+Data: 	X dimension: 32 5 
+	Y dimension: 32 1
+Fit method: kernelpls
+Number of components considered: 5
+
+VALIDATION: RMSEP
+Cross-validated using 10 random segments.
+       (Intercept)  1 comps  2 comps  3 comps  4 comps  5 comps
+CV           69.66    38.81    34.94    36.08    37.27    37.40
+adjCV        69.66    38.69    34.64    35.72    36.82    36.95
+
+TRAINING: % variance explained
+    1 comps  2 comps  3 comps  4 comps  5 comps
+X     68.66    89.27    95.82    97.94   100.00
+hp    71.84    81.74    82.00    82.02    82.03
+```
+---
+## PLS on mtcars
+
+
+```r
+# Visualize cross-validation plot
+validationplot(model, val.type = "RMSEP", col = "blue", main = "RMSEP")
+```
+
+&lt;img src="Team1-PLS_Lesson_files/figure-html/unnamed-chunk-4-1.png" width="40%" style="display: block; margin: auto;" /&gt;
+---
+## PLS on mtcars
+
+#### Step 4: Make Predictions using Final Model
+
+
+```r
+# Define training and testing sets
+train &lt;- mtcars[1:25, c("hp", "mpg", "disp", "drat", "wt", "qsec")]
+y_test &lt;- mtcars[26:nrow(mtcars), c("hp")]
+test &lt;- mtcars[26:nrow(mtcars), c("mpg", "disp", "drat", "wt", "qsec")]
+    
+# Use model to make predictions on a test set
+model_pls &lt;- plsr(hp~mpg+disp+drat+wt+qsec, data=train, scale=TRUE, validation="CV")
+model_pcr &lt;- pcr(hp~mpg+disp+drat+wt+qsec, data=train, scale=TRUE, validation="CV")
+
+pls_pred &lt;- predict(model_pls, test, ncomp=2)
+pcr_pred &lt;- predict(model_pcr, test, ncomp=2)
+
+# Calculate RMSE
+rmse_pls &lt;- sqrt(mean((pls_pred - y_test)^2))
+rmse_pcr &lt;- sqrt(mean((pcr_pred - y_test)^2))
+```
+---
+## PLS on mtcars
+
+#### Results: 
+
+```
+ PLS test RMSE: 54.9 
+ PCR test RMSE: 56.9 
+```
+
+* A lower RMSE value indicates better prediction performance. 
+* Therefore, based on this specific dataset and model setup, the PLS model outperformed the PCR model with respect to predicting hp.
+
+---
+
+
+## PLS on iris
+
+Suppose we want to predict the sepal length from all other variables.
+
+`$$Y = \text{Sepal width}$$`
+`$$X_1 = \text{Petal length}$$`
+`$$X_2 = \text{Petal length}$$`
+`$$X_3 = \text{Petal width}$$`
+
+
+```r
+head &lt;- head(iris[1:4])
+library(kableExtra)
+head %&gt;%
+  kbl(caption = "Iris dataset") %&gt;%
+  kable_classic(full_width = F, html_font = "Cambria", position='float_left')
+```
+
+&lt;table class=" lightable-classic" style="font-family: Cambria; width: auto !important; float: left; margin-right: 10px;"&gt;
+&lt;caption&gt;Iris dataset&lt;/caption&gt;
  &lt;thead&gt;
   &lt;tr&gt;
-   &lt;th style="text-align:right;"&gt; Sepal Length &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; Sepal Width &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; Petal Length &lt;/th&gt;
-   &lt;th style="text-align:right;"&gt; Petal Width &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Sepal.Length &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Sepal.Width &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Petal.Length &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Petal.Width &lt;/th&gt;
   &lt;/tr&gt;
  &lt;/thead&gt;
 &lt;tbody&gt;
@@ -470,34 +461,285 @@ format = "html")
    &lt;td style="text-align:right;"&gt; 1.7 &lt;/td&gt;
    &lt;td style="text-align:right;"&gt; 0.4 &lt;/td&gt;
   &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+```r
+library(knitr)
+
+MLR &lt;- lm(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width, data=iris)
+library(car)
+```
+
+```
+Loading required package: carData
+```
+
+```r
+vif &lt;- t(vif(MLR))
+vif %&gt;%
+  kbl(caption = "VIF values for MLR") %&gt;%
+  kable_classic(full_width = F, html_font = "Cambria", position='right')
+```
+
+&lt;table class=" lightable-classic" style="font-family: Cambria; width: auto !important; margin-right: 0; margin-left: auto"&gt;
+&lt;caption&gt;VIF values for MLR&lt;/caption&gt;
+ &lt;thead&gt;
   &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 4.6 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.3 &lt;/td&gt;
+   &lt;th style="text-align:right;"&gt; Sepal.Width &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Petal.Length &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Petal.Width &lt;/th&gt;
   &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
   &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 5.0 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.2 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 4.4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 2.9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.4 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.2 &lt;/td&gt;
-  &lt;/tr&gt;
-  &lt;tr&gt;
-   &lt;td style="text-align:right;"&gt; 4.9 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 3.1 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 1.5 &lt;/td&gt;
-   &lt;td style="text-align:right;"&gt; 0.1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.270815 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15.09757 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 14.23433 &lt;/td&gt;
   &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
+
+---
+
+## PLS on iris
+
+#### Check data for multicolinearity
+
+
+```
+Loading required package: ggplot2
+```
+
+```
+Registered S3 method overwritten by 'GGally':
+  method from   
+  +.gg   ggplot2
+```
+
+&lt;img src="Team1-PLS_Lesson_files/figure-html/colinearity-1.png" width="40%" style="float:left; padding:20px" /&gt;
+
+Petal length and petal width appear to be highly correlated. 
+
+
+#### Why should partial least squares be used here?
+
+ - Partial Least Squares Regression is able to deal with multicolinearity by creating new variables called PLS components that are uncorrelated.
+ - Unlike Principal Components Regression, PLS considers both the response and predictor variables for superior predictions.
+
+---
+
+## PLS on iris
+
+Since multicolineariy is present, the iris dataset is a good candidate for partial least squares regression.
+
+
+```r
+library(pls)
+set.seed(1)
+PLSmodel &lt;- plsr(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width,
+                 data=iris, scale=TRUE, validation="CV")
+summary(PLSmodel)
+```
+
+```
+Data: 	X dimension: 150 3 
+	Y dimension: 150 1
+Fit method: kernelpls
+Number of components considered: 3
+
+VALIDATION: RMSEP
+Cross-validated using 10 random segments.
+       (Intercept)  1 comps  2 comps  3 comps
+CV          0.8308   0.4599   0.3818   0.3172
+adjCV       0.8308   0.4595   0.3814   0.3169
+
+TRAINING: % variance explained
+              1 comps  2 comps  3 comps
+X               72.17    98.80   100.00
+Sepal.Length    69.99    79.37    85.86
+```
+---
+
+## PLS on iris
+
+### Finding the optimal model
+
+
+```r
+validationplot(PLSmodel, main='RMSEP vs components')
+validationplot(PLSmodel, val.type="MSEP", main='MSEP vs components')
+validationplot(PLSmodel, val.type="R2", main='R squared vs components')
+```
+
+&lt;img src="Team1-PLS_Lesson_files/figure-html/RMSE-1.png" width="25%" /&gt;&lt;img src="Team1-PLS_Lesson_files/figure-html/RMSE-2.png" width="25%" /&gt;&lt;img src="Team1-PLS_Lesson_files/figure-html/RMSE-3.png" width="25%" /&gt;
+
+As the number of components increases, root mean squared error decreases, Mean squared error prediction decreases, and R squared increases. Therefore all three components should be used.
+
+---
+
+## PLS on iris
+
+### Creating the optimal model
+
+
+```r
+# Create a training dataset
+training &lt;- iris[1:120, c('Sepal.Length', 'Sepal.Width', 'Petal.Length', 'Petal.Width')]
+
+# Create a testing dataset for Y
+yTest &lt;- iris[121:nrow(iris), c('Sepal.Length')]
+
+# Create a testing dataset for X
+test &lt;- iris[121:nrow(iris), c('Sepal.Width', 'Petal.Length', 'Petal.Width')]
+
+# Build final model based off optimal component values
+finalModel &lt;- plsr(Sepal.Length~Sepal.Width+Petal.Length+Petal.Width,
+                   data=training, scale=TRUE, validation='CV')
+
+# Predict values and calculate RMSE
+predictor &lt;- predict(finalModel, test, ncomp=3)
+RMSE &lt;- sqrt(mean((predictor - yTest)^2))
+```
+
+The average deviation between the predicted sepal length and the actual observed sepal length is 0.3753252.
+
+---
+
+
+## Sports Data Example - NFL Data
+
+Objective : Real-world scenarios often involve datasets with a large number of columns, which can lead to overfitting. To address this issue, we propose a two-dimensional reduction model. PCR involves reducing the dimensionality of the predictor variables by using principal component analysis. On the other hand PSLR seeks to identify a small set of latent variables that are linear combinations of the original predictors, which explain the maximum covariance between the predictor and response variables. To obtain the most accurate model fit, we implement this approach with the NFL dataset and compared the result.
+
+```r
+library(pls)
+sports &lt;- read.csv("NFL_1974_1.csv", header = TRUE)
+set.seed(123)
+```
+
+The data set is being trained below.
+
+```r
+train_index &lt;- sample(1:nrow(sports), round(0.7*nrow(sports)), replace = FALSE)
+train &lt;- sports[train_index, ]
+test &lt;- sports[-train_index, ]
+```
+
+---
+
+## PLS on NFL Data
+
+We implemented the PLS model by creating 5 components, and found that it provided the overall information of 86% of the Dependent and 85% of the Independent variables.
+
+```r
+pls_model &lt;- plsr(y ~ ., data = train, scale = TRUE, validation = "CV",ncomp = 5)
+print(summary(pls_model))
+```
+
+```
+Data: 	X dimension: 20 9 
+	Y dimension: 20 1
+Fit method: kernelpls
+Number of components considered: 5
+
+VALIDATION: RMSEP
+Cross-validated using 10 random segments.
+       (Intercept)  1 comps  2 comps  3 comps  4 comps  5 comps
+CV           3.218    1.637    1.634    1.756    1.863    1.916
+adjCV        3.218    1.621    1.614    1.727    1.829    1.878
+
+TRAINING: % variance explained
+   1 comps  2 comps  3 comps  4 comps  5 comps
+X    32.61    55.32    63.92    75.11    86.47
+y    80.20    84.06    85.20    85.46    85.60
+NULL
+```
+
+---
+
+## Validation Plot
+
+```r
+validationplot(pls_model, val.type = "RMSEP" )
+```
+
+![](Team1-PLS_Lesson_files/figure-html/unnamed-chunk-10-1.png)&lt;!-- --&gt;
+
+---
+
+## PCR on NFL Data
+
+We implemented the PLS model by creating 5 components, and found that it provided the overall information of 89% of the Dependent and 83% of the Independent variables. Validation Plot is included here as well.
+
+
+```r
+pcr_model &lt;- pcr(y ~ ., data = train, scale = TRUE, validation = "CV",ncomp = 5)
+```
+
+```r
+validationplot(pcr_model, val.type = "RMSEP" )
+```
+&lt;img src="plot1.jpeg"  width="50%" height="5%"&gt;
+
+---
+
+## Predictions using the PLS Model and the PCR Model
+
+### PLS Model
+
+```r
+pls_pred &lt;- predict(pls_model, newdata = test)
+pls_rmse &lt;- sqrt(mean((test$y - pls_pred)^2))
+```
+
+### PCR Model
+
+```r
+pcr_pred &lt;- predict(pcr_model, newdata = test)
+pcr_rmse &lt;- sqrt(mean((test$y - pcr_pred)^2))
+```
+
+---
+
+## Summary Table
+
+
+```r
+summary_table &lt;- data.frame(Model = c("PLS", "PCR"),
+                            RMSE = c(pls_rmse, pcr_rmse))
+print(summary_table)
+```
+
+```
+  Model     RMSE
+1   PLS 2.986334
+2   PCR 3.392911
+```
+
+Upon applying both models, we have determined that the PLS model outperformed the PCR model in terms of performance as the root mean
+square deviation between the values predicted and the values observed
+is smaller which indicates the points are closer to the actual line making
+it more accurate.
+
+---
+
+## References
+.font60[
+* Abdi H, Williams LJ. Partial least squares methods: partial least squares correlation and partial least square regression. Methods Mol Biol. 2013;930:549-79. doi: 10.1007/978-1-62703-059-5_23. PMID: 23086857.
+
+* Dayal, B., &amp; MacGregor, J. (1997). Improved PLS algorithms. Journal of Chemometrics, 11(1), 73-85.
+
+* Dunn, Kevin. “6.7 A Conceptual Explanation of PLS.” Process Improvement Using Data, 1 Feb. 2023, https://learnche.org/pid/latent-variable-modelling/projection-to-latent-structures/conceptual-mathematical-and-geometric-interpretation-of-pls. 
+
+* Kristian Hovde Liland [aut, cre]. (2022, July 16). PLS: Partial least squares and principal component regression version 2.8-1 from cran. version 2.8-1 from CRAN. Retrieved April 24, 2023, from https://rdrr.io/cran/pls/ 
+
+* Rosipal, R., Krämer, N. (2006). Overview and Recent Advances in Partial Least Squares. In: Saunders, C., Grobelnik, M., Gunn, S., Shawe-Taylor, J. (eds) Subspace, Latent Structure and Feature Selection. SLSFS 2005. Lecture Notes in Computer Science, vol 3940. Springer, Berlin, Heidelberg. https://doi.org/10.1007/11752790_2
+
+* Wegelin, J.A. (2000). A Survey of Partial Least Squares (PLS) Methods, with Emphasis on the Two-Block Case.
+
+* 1.8. cross decomposition. scikit. (2023). Retrieved April 24, 2023, from https://scikit-learn.org/stable/modules/cross_decomposition.html#cross-decomposition 
 ]
-]
+
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
@@ -507,7 +749,7 @@ format = "html")
 "countIncrementalSlides": false,
 "ratio": "16:9",
 "navigation": {
-"scroll": false
+"scroll": true
 }
 });
 if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
